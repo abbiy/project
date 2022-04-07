@@ -12,7 +12,7 @@ pipeline {
                 sh 'cd $WORKSPACE'
                 sh 'rm -rf project'
                 git branch: "master",
-                    url: "https://github.com/mayur321886/project"
+                    url: "https://github.com/abbiy/project"
                 sh 'ls'
             }
         }
@@ -21,7 +21,7 @@ pipeline {
                 stage('Git Repository Scanner') {
                     steps {
                         sh 'cd $WORKSPACE'
-                        sh 'trufflehog https://github.com/mayur321886/project --json | jq "{branch:.branch, commitHash:.commitHash, path:.path, stringsFound:.stringsFound}" > trufflehog_report.json || true'
+                        sh 'trufflehog https://github.com/abbiy/project --json | jq "{branch:.branch, commitHash:.commitHash, path:.path, stringsFound:.stringsFound}" > trufflehog_report.json || true'
                         sh 'cat trufflehog_report.json'
                         sh 'echo "Scanning Repositories.....done"'
                         archiveArtifacts artifacts: 'trufflehog_report.json', onlyIfSuccessful: true
@@ -35,9 +35,9 @@ pipeline {
                         sh 'cd $WORKSPACE'
                         sh 'dockle --input ~/docker_img_backup/mytomcat.tar -f json -o mytomcat_report.json'
                         sh 'cat mytomcat_report.json | jq {summary}'
-                        sh 'dockle --input ~/docker_img_backup/pgadmin4.tar -f json -o pgadmin4_report.json'
+                        sh 'dockle --input ~/docker_img_backup/pgadmin.tar -f json -o pgadmin4_report.json'
                         sh 'cat pgadmin4_report.json | jq {summary}'
-                        sh 'dockle --input ~/docker_img_backup/postgres11.tar -f json -o postgres11_report.json'
+                        sh 'dockle --input ~/docker_img_backup/postgres.tar -f json -o postgres11_report.json'
                         sh 'cat postgres11_report.json | jq {summary}'
                         sh 'dockle --input ~/docker_img_backup/zap2docker-stable.tar -f json -o zap2docker-stable_report.json'
                         sh 'cat zap2docker-stable_report.json | jq {summary}'
@@ -66,11 +66,6 @@ pipeline {
                 sh 'docker start pgadmin_container || true'
                 sh 'docker start postgres_container || true'
                 sh 'docker start login || true'
-            }
-        }
-        stage('SonarQube Analysis') {
-            steps {
-                sh 'mvn sonar:sonar -Dsonar.projectKey=mayur -Dsonar.host.url=http://cdac.project.com:4444 -Dsonar.login=8b23a5d0adfaffdf6030607be0309be62f521981 || true'
             }
         }
         stage('SCA') {
@@ -103,8 +98,8 @@ pipeline {
             steps {
                 sh 'docker rm dast_baseline || true'
                 sh 'docker rm dast_full || true'
-                sh 'docker run --name dast_full --network project_project -t owasp/zap2docker-stable zap-full-scan.py -t http://cdac.project.com/LoginWebApp/ || true'
-                sh 'docker run --name dast_baseline --network project_project -t owasp/zap2docker-stable zap-baseline.py -t http://cdac.project.com/LoginWebApp/ --autooff || true'
+                sh 'docker run --name dast_full --network project_project -t owasp/zap2docker-stable zap-full-scan.py -t http:192.168.96.135/LoginWebApp/ || true'
+                sh 'docker run --name dast_baseline --network project_project -t owasp/zap2docker-stable zap-baseline.py -t http://192.168.96.135/LoginWebApp/ --autooff || true'
             }
         }
     }
