@@ -20,12 +20,13 @@ pipeline {
             parallel {
                 stage('Git Repository Scanner') {
                     steps {
-                        //sh 'git clone https://github.com/abbiy/project'
-                        sh 'cd /project'
+                        sh 'cd $WORKSPACE'
+                        sh 'git clone https://github.com/abbiy/project && cd project'
                         sh 'docker run --rm -v "$(pwd):/proj" dxa4481/trufflehog file:///proj | tee truffleout-test'
                         //sh 'trufflehog https://github.com/abbiy/project --json | jq "{branch:.branch, commitHash:.commitHash, path:.path, stringsFound:.stringsFound}" > trufflehog_report.json || true'
                         sh 'cat truffleout-test'
                         sh 'echo "Scanning Repositories.....done"'
+                        telegrambot attachmentspattern: 'trufflehogtest', || true
                         archiveArtifacts artifacts: 'truffleout-test', onlyIfSuccessful: true
                         emailext attachLog: true, attachmentsPattern: 'truffleout-test', 
                         body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}\n Thankyou,\n CDAC-Project Group-7", 
@@ -67,7 +68,7 @@ pipeline {
             parallel {
                 stage('Dependency Check') {
                     steps {
-                        sh 'wget https://github.com/abbiy/project/blob/master/dc.sh'
+                        sh 'wget https://github.com/mayur321886/project/blob/master/dc.sh'
                         sh 'chmod +x dc.sh'
                         sh './dc.sh'
                         archiveArtifacts artifacts: 'odc-reports/*.html', onlyIfSuccessful: true
@@ -95,6 +96,16 @@ pipeline {
                 //sh 'docker run --name dast_full --network project_project -t owasp/zap2docker-stable zap-full-scan.py -t http:192.168.96.135/LoginWebApp/ || true'
                 //sh 'docker run --name dast_baseline --network project_project -t owasp/zap2docker-stable zap-baseline.py -t http://192.168.96.135/LoginWebApp/ --autooff || true'
             }
+        }
+    }
+}
+        stage('telegram') {
+            steps {
+                script{
+                     withCredentials([string(credentialsId: ‘telegramToken’, variable: 'TOKEN'),
+                     string(credentialsId: ‘telegramChatId’, variable: ‘CHAT_ID’)]) {
+                     telegramSend(messsage:”Build process success”,chatId:${895874551})
+             }
         }
     }
 }
