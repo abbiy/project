@@ -26,7 +26,7 @@ pipeline {
                         //sh 'trufflehog https://github.com/abbiy/project --json | jq "{branch:.branch, commitHash:.commitHash, path:.path, stringsFound:.stringsFound}" > trufflehog_report.json || true'
                         sh 'cat truffleout-test'
                         sh 'echo "Scanning Repositories.....done"'
-                        telegrambot attachmentspattern: 'trufflehogtest', || true
+                       // telegrambot attachmentspattern: 'trufflehogtest',
                         archiveArtifacts artifacts: 'truffleout-test', onlyIfSuccessful: true
                         emailext attachLog: true, attachmentsPattern: 'truffleout-test', 
                         body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}\n Thankyou,\n CDAC-Project Group-7", 
