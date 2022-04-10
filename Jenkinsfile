@@ -104,7 +104,7 @@ pipeline {
                 script{
                      withCredentials([string(credentialsId: ‘telegramToken’, variable: 'TOKEN'),
                      string(credentialsId: ‘telegramChatId’, variable: ‘CHAT_ID’)]) {
-                     telegramSend(messsage:”Build process success”,chatId:${895874551})
+                     telegramSend(messsage:"build confirmation",chatId:${895874551})
              }
         }
     }
