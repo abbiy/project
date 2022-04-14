@@ -92,20 +92,20 @@ pipeline {
         }
         stage('DAST') {
             steps {
-                sh 'docker run -u root --name zap1 --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable zap-baseline.py -t http://192.168.96.140/ -r report_html || true' 
+                sh 'docker run -u root --name zap1 --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable:latest zap-baseline.py -t http://192.168.96.147/LoginWebApp -r report_html || true' 
                 //sh 'docker run --name dast_full --network project_project -t owasp/zap2docker-stable zap-full-scan.py -t http:192.168.96.135/LoginWebApp/ || true'
                 //sh 'docker run --name dast_baseline --network project_project -t owasp/zap2docker-stable zap-baseline.py -t http://192.168.96.135/LoginWebApp/ --autooff || true'
             }
         }
     }
 }
-        stage('telegram') {
-            steps {
-                script{
-                     withCredentials([string(credentialsId: ‘telegramToken’, variable: 'TOKEN'),
-                     string(credentialsId: ‘telegramChatId’, variable: ‘CHAT_ID’)]) {
-                     telegramSend(messsage:"build confirmation",chatId:${895874551})
-             }
-        }
-    }
-}
+        //stage('telegram') {
+          //  steps {
+           //     script{
+             //        withCredentials([string(credentialsId: ‘telegramToken’, variable: 'TOKEN'),
+               //      string(credentialsId: ‘telegramChatId’, variable: ‘CHAT_ID’)]) {
+                 //    telegramSend(messsage:"build confirmation",chatId:${895874551})
+           //  }
+        //}
+   // }
+//}
