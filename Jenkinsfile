@@ -36,9 +36,14 @@ pipeline {
                 stage('Image Security') {
                     steps {
                         sh 'cd $WORKSPACE'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 login-image | tee login-report.html'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 postgres | tee postgres-report.html'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 pgadmin4 | tee pgadmin4.html'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 login-image | tee login-report.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 postgres | tee postgres-report.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 pgadmin4 | tee pgadmin4.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 sonarqube | tee sonarqube.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 owasp/zap2docker-stable  | tee zap2docker.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 owasp/dependency-check | tee owsp-check.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 owasp/sonarqube | tee sonar-check.json'
+                        
                         archiveArtifacts artifacts: '*.json', onlyIfSuccessful: true
                         emailext attachLog: true, attachmentsPattern: '*.json', 
                         body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}\n Please Find Attachments for the following:\n Thankyou\n CDAC-Project Group-7",
@@ -50,6 +55,10 @@ pipeline {
         stage('Build Stage') {
             steps {
                 sh 'mvn clean install'
+                //maven lifecycle:
+                //validate >> compile >> test (optional) >> package >> verify >> install
+
+
             }
         }
         stage('SonarQube Analysis') {
