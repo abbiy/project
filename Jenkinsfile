@@ -36,9 +36,9 @@ pipeline {
                 stage('Image Security') {
                     steps {
                         sh 'cd $WORKSPACE'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 login-image | tee login-report.json'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 postgres | tee postgres-report.json'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 pgadmin4 | tee pgadmin4.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 login-image | tee login-report.html'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 postgres | tee postgres-report.html'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 pgadmin4 | tee pgadmin4.html'
                         archiveArtifacts artifacts: '*.json', onlyIfSuccessful: true
                         emailext attachLog: true, attachmentsPattern: '*.json', 
                         body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}\n Please Find Attachments for the following:\n Thankyou\n CDAC-Project Group-7",
@@ -49,9 +49,12 @@ pipeline {
         }
         stage('Build Stage') {
             steps {
-                sh 'mvn clean'
-                sh 'mvn compile'
-                sh 'mvn package'
+                sh 'mvn clean install'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                sh 'mvn sonar:sonar -Dsonar.projectKey=ditiss-scan -Dsonar.host.url=http://192.168.96.148:9000 -Dsonar.login=10b0c6f5474255efe25944f3033576042af0501c || true'
             }
         }
         stage('Initializing Docker') {
@@ -73,7 +76,6 @@ pipeline {
                         sh './dc.sh'
                         archiveArtifacts artifacts: 'odc-reports/*.html', onlyIfSuccessful: true
                         archiveArtifacts artifacts: 'odc-reports/*.csv', onlyIfSuccessful: true
-                        archiveArtifacts artifacts: 'odc-reports/*.json', onlyIfSuccessful: true
                         emailext attachLog: true, attachmentsPattern: '*.html', 
                         body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}\n Please Find Attachments for the following:\n Thankyou\n CDAC-Project Group-7",
                         subject: "${env.JOB_NAME} - Build # ${env.BUILD_NUMBER} - success", mimeType: 'text/html', to: "abbyvishnoi@gmail.com"
@@ -92,20 +94,8 @@ pipeline {
         }
         stage('DAST') {
             steps {
-                sh 'docker run -u root --name zap1 --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable:latest zap-baseline.py -t http://192.168.96.147:8080/LoginWebApp -r report_html || true' 
-                //sh 'docker run --name dast_full --network project_project -t owasp/zap2docker-stable zap-full-scan.py -t http:192.168.96.135/LoginWebApp/ || true'
-                //sh 'docker run --name dast_baseline --network project_project -t owasp/zap2docker-stable zap-baseline.py -t http://192.168.96.135/LoginWebApp/ --autooff || true'
+                sh 'docker run -u root --name zap1 --rm -v $(pwd):/zap/wrk/:rw -t owasp/zap2docker-stable:latest zap-baseline.py -t http://192.168.96.148/LoginWebApp -r reportzap_html || true'
             }
         }
     }
 }
-        //stage('telegram') {
-          //  steps {
-           //     script{
-             //        withCredentials([string(credentialsId: ‘telegramToken’, variable: 'TOKEN'),
-               //      string(credentialsId: ‘telegramChatId’, variable: ‘CHAT_ID’)]) {
-                 //    telegramSend(messsage:"build confirmation",chatId:${895874551})
-           //  }
-        //}
-   // }
-//}
