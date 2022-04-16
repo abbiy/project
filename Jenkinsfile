@@ -1,4 +1,4 @@
-//pipeline code
+// Ditiss-Project pipeline code!!
 pipeline {
     agent any
     stages {
@@ -22,13 +22,11 @@ pipeline {
                     steps {
                         sh 'cd $WORKSPACE'
                         sh 'git clone https://github.com/abbiy/project && cd project'
-                        sh 'docker run --rm -v "$(pwd):/proj" dxa4481/trufflehog file:///proj | tee truffleout-test'
-                        //sh 'trufflehog https://github.com/abbiy/project --json | jq "{branch:.branch, commitHash:.commitHash, path:.path, stringsFound:.stringsFound}" > trufflehog_report.json || true'
-                        sh 'cat truffleout-test'
+                        sh 'docker run --rm -v "$(pwd):/proj" dxa4481/trufflehog file:///proj --json | jq "{branch:.branch, commitHash:.commitHash, path:.path, stringsFound:.stringsFound}" > trufflehog_report.json'
+                        sh 'cat trufflehog_report.json'
                         sh 'echo "Scanning Repositories.....done"'
-                       // telegrambot attachmentspattern: 'trufflehogtest',
-                        archiveArtifacts artifacts: 'truffleout-test', onlyIfSuccessful: true
-                        emailext attachLog: true, attachmentsPattern: 'truffleout-test', 
+                        archiveArtifacts artifacts: 'trufflehog_report.json', onlyIfSuccessful: true
+                        emailext attachLog: true, attachmentsPattern: 'trufflehog_report.json', 
                         body: "${currentBuild.currentResult}: Job ${env.JOB_NAME} build ${env.BUILD_NUMBER}\n More info at: ${env.BUILD_URL}\n Thankyou,\n CDAC-Project Group-7", 
                         subject: "Jenkins Build ${currentBuild.currentResult}: Job ${env.JOB_NAME} - success", mimeType: 'text/html', to: "abbyvishnoi@gmail.com"
                     }
@@ -40,9 +38,8 @@ pipeline {
                         sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 postgres | tee postgres-report.json'
                         sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 pgadmin4 | tee pgadmin4.json'
                         sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 sonarqube | tee sonarqube.json'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 owasp/zap2docker-stable  | tee zap2docker.json'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 owasp/dependency-check | tee owsp-check.json'
-                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 owasp/sonarqube | tee sonar-check.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 dependency-check | tee owsp-check.json'
+                        sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock  goodwithtech/dockle:v0.4.5 sonarqube | tee sonar-check.json'
                         
                         archiveArtifacts artifacts: '*.json', onlyIfSuccessful: true
                         emailext attachLog: true, attachmentsPattern: '*.json', 
